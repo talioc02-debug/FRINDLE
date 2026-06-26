@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Frindle">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ff7a3d">
+<title>Frindle · Word Hero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Gochi+Hand&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1d2a44; --ink-soft:#54627c;
+    --nick:#ff7a3d; --nick-d:#d65a1e;
+    --teal:#138a74; --teal-d:#0c5f50;
+    --gold:#f4b740; --red:#e8453c; --green:#2faa6a; --green-d:#1c7a4a;
+    --paper:#fff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:'Baloo 2',system-ui,sans-serif;color:var(--ink);
+    background:linear-gradient(170deg,#eaf6ff 0%,#fff5e8 60%,#ffeede 100%);
+    background-attachment:fixed;min-height:100vh;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    overflow-x:hidden;
+  }
+  .app{max-width:560px;margin:0 auto;padding:14px 14px 40px}
+  .screen{display:none;animation:fade .3s}
+  .screen.show{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  /* ---------- HOME ---------- */
+  .logo{text-align:center;margin:6px 0 2px}
+  .logo .big{font-family:'Gochi Hand';font-size:3.4rem;color:var(--red);line-height:.9;transform:rotate(-2deg);display:inline-block}
+  .logo .sub{font-weight:700;color:var(--ink-soft);font-size:1rem;margin-top:4px}
+  .scorebar{display:flex;justify-content:center;gap:10px;margin:10px 0 4px}
+  .scorebar .chip{background:var(--ink);color:#fff;font-weight:800;border-radius:999px;padding:6px 16px;font-size:1rem}
+  .scorebar .chip .g{color:var(--gold)}
+  .hello{text-align:center;color:var(--ink-soft);font-weight:600;margin-bottom:10px}
+  .ch-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .ch-card{background:var(--paper);border:3px solid var(--ink);border-radius:18px;padding:12px 10px;
+    cursor:pointer;box-shadow:0 6px 0 var(--ink);transition:transform .08s;display:flex;flex-direction:column;gap:4px;text-align:center;position:relative}
+  .ch-card:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
+  .ch-card .num{position:absolute;top:-10px;left:-8px;background:var(--nick);color:#fff;border:2.5px solid var(--ink);
+    width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem}
+  .ch-card .emj{font-size:2rem;line-height:1.1;margin-top:4px}
+  .ch-card .t-en{font-weight:800;font-size:.92rem;line-height:1}
+  .ch-card .t-it{font-size:.72rem;color:var(--ink-soft);font-weight:600}
+  .ch-card .stars{font-size:.8rem;letter-spacing:1px;margin-top:2px;height:1em}
+  .ch-card.done{background:#eafaf1;border-color:var(--green-d);box-shadow:0 6px 0 var(--green-d)}
+
+  /* ---------- CHAPTER HEADER + TABS ---------- */
+  .ch-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .back{background:#fff;border:3px solid var(--ink);border-radius:14px;font-size:1.3rem;width:46px;height:46px;
+    cursor:pointer;box-shadow:0 4px 0 var(--ink);flex:0 0 auto}
+  .back:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+  .ch-title{font-weight:800;font-size:1.15rem;line-height:1}
+  .ch-title small{display:block;font-size:.8rem;color:var(--ink-soft);font-weight:600}
+  .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+  .tab{background:#fff;border:3px solid var(--ink);border-radius:14px;padding:8px 2px;cursor:pointer;
+    box-shadow:0 4px 0 var(--ink);text-align:center;font-weight:700;font-size:.72rem;line-height:1.15}
+  .tab .ico{font-size:1.3rem;display:block}
+  .tab:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+  .tab.active{background:var(--gold);box-shadow:0 4px 0 var(--nick-d)}
+  .tab.tdone{background:#eafaf1}
+  .tab.tdone .ico::after{content:" ✅"}
+
+  .pane{display:none}
+  .pane.show{display:block;animation:fade .25s}
+
+  .card{background:var(--paper);border:3px solid var(--ink);border-radius:18px;padding:16px;box-shadow:0 6px 0 var(--ink);margin-bottom:14px}
+
+  /* ---------- STORY ---------- */
+  .scene{font-size:3.2rem;text-align:center;line-height:1.2;margin-bottom:6px}
+  .story-line{display:flex;flex-direction:column;gap:1px;padding:9px 12px;border-radius:12px;cursor:pointer;border:2px solid transparent}
+  .story-line:active{background:#fff7e6;border-color:var(--gold)}
+  .story-line .en{font-weight:700;font-size:1.12rem}
+  .story-line .en .spk{font-size:.95rem;opacity:.55}
+  .story-line .it{color:var(--ink-soft);font-weight:600;font-size:.92rem}
+  .playall{display:block;width:100%;margin-top:8px}
+
+  .phrase{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:#f3fbf8;border:2px solid #cfeae2;margin-bottom:8px;cursor:pointer}
+  .phrase:active{background:#e2f4ee}
+  .phrase .pic{font-size:1.7rem;flex:0 0 auto}
+  .phrase .txt{flex:1}
+  .phrase .en{font-weight:800;color:var(--teal-d)}
+  .phrase .it{font-size:.85rem;color:var(--ink-soft);font-weight:600}
+  .phrase .ear{font-size:1.3rem;opacity:.6}
+
+  .btn{font-family:'Baloo 2';font-weight:800;font-size:1.05rem;cursor:pointer;border:3px solid var(--ink);
+    background:var(--gold);color:var(--ink);padding:12px 18px;border-radius:14px;box-shadow:0 5px 0 var(--ink);transition:transform .08s}
+  .btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+  .btn.go{background:var(--nick);color:#fff;border-color:var(--nick-d);box-shadow:0 5px 0 var(--nick-d)}
+  .btn.tl{background:var(--teal);color:#fff;border-color:var(--teal-d);box-shadow:0 5px 0 var(--teal-d)}
+  .center{text-align:center}
+  .hint{text-align:center;color:var(--ink-soft);font-weight:600;font-size:.92rem;margin-bottom:10px}
+
+  /* ---------- MATCH ---------- */
+  .match-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .mcol{display:flex;flex-direction:column;gap:9px}
+  .tile{background:#fff;border:3px solid var(--ink);border-radius:14px;padding:13px 8px;cursor:pointer;
+    box-shadow:0 4px 0 var(--ink);font-weight:800;font-size:1.05rem;text-align:center;transition:transform .08s}
+  .tile.pic{font-size:2rem;padding:8px}
+  .tile:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+  .tile.sel{background:var(--gold);box-shadow:0 4px 0 var(--nick-d)}
+  .tile.lock{background:#eafaf1;border-color:var(--green-d);box-shadow:0 4px 0 var(--green-d);color:var(--green-d);cursor:default}
+  .tile.miss{animation:shake .4s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+  /* ---------- MEMORY ---------- */
+  .mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .mcard{aspect-ratio:3/4;border:3px solid var(--ink);border-radius:12px;cursor:pointer;display:flex;
+    align-items:center;justify-content:center;font-weight:800;font-size:1.5rem;background:var(--nick);color:#fff;
+    box-shadow:0 4px 0 var(--nick-d);transition:transform .12s;user-select:none}
+  .mcard .face{display:none;padding:2px;text-align:center;font-size:.8rem;line-height:1}
+  .mcard .face.pic{font-size:1.9rem}
+  .mcard.flip{background:#fff;box-shadow:0 4px 0 var(--ink)}
+  .mcard.flip .back{display:none}
+  .mcard.flip .face{display:block}
+  .mcard.lock{background:#eafaf1;border-color:var(--green-d);box-shadow:0 4px 0 var(--green-d);cursor:default}
+  .mcard .back{font-size:1.6rem}
+  @media(max-width:380px){.mem-grid{grid-template-columns:repeat(3,1fr)}}
+
+  /* ---------- CROSSWORD ---------- */
+  .xw-wrap{overflow-x:auto;padding-bottom:6px}
+  .xw{display:grid;gap:3px;width:max-content;margin:0 auto 4px}
+  .xc{width:34px;height:34px;position:relative}
+  .xc.block{background:transparent}
+  .xc input{width:100%;height:100%;border:2px solid var(--ink);border-radius:6px;text-align:center;
+    font-family:'Baloo 2';font-weight:800;font-size:1.05rem;text-transform:uppercase;background:#fff;color:var(--ink);padding:0}
+  .xc input:focus{outline:none;background:#fff7e6;border-color:var(--nick)}
+  .xc input.ok{background:#eafaf1;border-color:var(--green-d);color:var(--green-d)}
+  .xc input.bad{background:#ffe7e4;border-color:var(--red)}
+  .xc .qn{position:absolute;top:-1px;left:1px;font-size:.55rem;font-weight:800;color:var(--nick-d);line-height:1}
+  .clues{margin-top:6px}
+  .clue{display:flex;align-items:center;gap:8px;padding:6px 4px;font-weight:600;font-size:.95rem}
+  .clue .n{background:var(--nick);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;flex:0 0 auto}
+  .clue .pic{font-size:1.4rem}
+  .clue .it{color:var(--ink-soft)}
+
+  /* ---------- WIN / TOAST ---------- */
+  .toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:80;background:var(--ink);color:#fff;
+    font-weight:800;padding:11px 18px;border-radius:14px;box-shadow:0 6px 0 rgba(0,0,0,.2);opacity:0;pointer-events:none;
+    transition:.25s;max-width:92%;text-align:center}
+  .toast.show{opacity:1;top:24px}
+  .floatpts{position:fixed;z-index:90;font-weight:800;color:var(--gold);font-size:1.6rem;pointer-events:none;
+    text-shadow:0 2px 0 var(--ink);animation:fp 1s ease-out forwards}
+  @keyframes fp{to{transform:translateY(-55px);opacity:0}}
+  .done-banner{text-align:center;background:#eafaf1;border:3px dashed var(--green-d);border-radius:16px;padding:14px;margin-top:8px}
+  .done-banner .e{font-size:2.4rem}
+  .done-banner .t{font-weight:800;color:var(--green-d);font-size:1.15rem}
+  .done-banner .i{color:var(--ink-soft);font-weight:600;font-size:.9rem}
+
+  .footnote{text-align:center;color:var(--ink-soft);font-size:.78rem;font-weight:600;margin-top:18px;line-height:1.4}
+  .fab{position:fixed;right:14px;bottom:14px;z-index:60;width:56px;height:56px;border-radius:50%;border:3px solid var(--ink);
+    background:#3aa0ff;color:#fff;font-size:1.5rem;cursor:pointer;box-shadow:0 5px 0 #14538f}
+  .fab:active{transform:translateY(3px);box-shadow:0 2px 0 #14538f}
+
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ HOME ============ -->
+  <section class="screen show" id="home">
+    <div class="logo">
+      <div class="big">Frindle</div>
+      <div class="sub">Word Hero · Eroe delle Parole 🦸</div>
+    </div>
+    <div class="scorebar">
+      <div class="chip">⭐ <span class="g" id="totalStars">0</span>/45</div>
+      <div class="chip">🏆 <span class="g" id="chDone">0</span>/15</div>
+    </div>
+    <div class="hello">Choose a chapter! · Scegli un capitolo!</div>
+    <div class="ch-grid" id="chGrid"></div>
+    <div class="footnote">
+      📱 On iPad/iPhone: tap <b>Share</b> → <b>Add to Home Screen</b> to play like an app (works offline).<br>
+      🔊 Tap any English sentence or word to hear it.
+    </div>
+  </section>
+
+  <!-- ============ CHAPTER ============ -->
+  <section class="screen" id="chapter">
+    <div class="ch-head">
+      <button class="back" onclick="goHome()">←</button>
+      <div class="ch-title" id="chTitle"></div>
+    </div>
+    <div class="tabs" id="tabs">
+      <div class="tab" data-pane="story" onclick="showPane('story')"><span class="ico">📖</span>Story<br>Storia</div>
+      <div class="tab" data-pane="match" onclick="showPane('match')"><span class="ico">🧩</span>Match<br>Abbina</div>
+      <div class="tab" data-pane="memory" onclick="showPane('memory')"><span class="ico">🃏</span>Memory<br>Memoria</div>
+      <div class="tab" data-pane="cross" onclick="showPane('cross')"><span class="ico">✏️</span>Cross<br>Cruci</div>
+    </div>
+
+    <div class="pane" id="pane-story">
+      <div class="card">
+        <div class="scene" id="scene"></div>
+        <div id="storyLines"></div>
+        <button class="btn tl playall" onclick="playStory()">▶︎ Play the whole story · Ascolta tutta la storia</button>
+      </div>
+      <div class="card">
+        <div class="hint">🗣️ Key phrases — tap to hear · Frasi chiave</div>
+        <div id="phrases"></div>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-match">
+      <div class="card">
+        <div class="hint">Tap a <b>word</b>, then its <b>picture</b> · Tocca la parola, poi l'immagine</div>
+        <div class="match-grid">
+          <div class="mcol" id="matchWords"></div>
+          <div class="mcol" id="matchPics"></div>
+        </div>
+        <div id="matchDone"></div>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-memory">
+      <div class="card">
+        <div class="hint">Find the pairs: word + picture · Trova le coppie</div>
+        <div class="mem-grid" id="memGrid"></div>
+        <div id="memDone"></div>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-cross">
+      <div class="card">
+        <div class="hint">Write the English word · Scrivi la parola in inglese</div>
+        <div class="xw-wrap"><div class="xw" id="xwGrid"></div></div>
+        <div class="center" style="margin:8px 0"><button class="btn go" onclick="checkCross()">Check · Controlla ✓</button></div>
+        <div class="clues" id="xwClues"></div>
+        <div id="crossDone"></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<button class="fab" title="chirp" onclick="chirp()">🐦</button>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================ DATA ============================ */
+const CH = [
+ {n:1,en:"Nick the Idea Boy",it:"Nick, il ragazzo delle idee",scene:"🧑‍🦰 🌴 🐦",
+  story:[{en:"Nick is a clever boy.",it:"Nick è un ragazzo intelligente."},
+         {en:"Nick loves fun ideas!",it:"Nick adora le idee divertenti!"},
+         {en:"He makes a bird sound: chirp, chirp!",it:"Fa il verso dell'uccello: cip, cip!"}],
+  vocab:[{w:"boy",it:"ragazzo",pic:"🧒",ans:"BOY"},{w:"idea",it:"idea",pic:"💡",ans:"IDEA"},
+         {w:"clever",it:"intelligente",pic:"🧠",ans:"CLEVER"},{w:"fun",it:"divertimento",pic:"🎉",ans:"FUN"},
+         {w:"bird",it:"uccello",pic:"🐦",ans:"BIRD"},{w:"school",it:"scuola",pic:"🏫",ans:"SCHOOL"}],
+  phrases:[{en:"Nick is clever.",it:"Nick è intelligente.",pic:"🧠"},{en:"I have an idea!",it:"Ho un'idea!",pic:"💡"},{en:"Chirp, chirp!",it:"Cip, cip!",pic:"🐦"}]},
+
+ {n:2,en:"Mrs. Granger",it:"La signora Granger",scene:"👩‍🏫 📖 👀",
+  story:[{en:"Mrs. Granger is a strict teacher.",it:"La signora Granger è severa."},
+         {en:"She loves the dictionary.",it:"Lei adora il dizionario."},
+         {en:"Her eyes see everything!",it:"I suoi occhi vedono tutto!"}],
+  vocab:[{w:"teacher",it:"insegnante",pic:"👩‍🏫",ans:"TEACHER"},{w:"strict",it:"severa",pic:"😠",ans:"STRICT"},
+         {w:"eyes",it:"occhi",pic:"👀",ans:"EYES"},{w:"book",it:"libro",pic:"📖",ans:"BOOK"},
+         {w:"word",it:"parola",pic:"💬",ans:"WORD"},{w:"home",it:"casa",pic:"🏠",ans:"HOME"}],
+  phrases:[{en:"She is my teacher.",it:"Lei è la mia insegnante.",pic:"👩‍🏫"},{en:"Open your dictionary.",it:"Apri il dizionario.",pic:"📖"},{en:"Do your homework.",it:"Fai i compiti.",pic:"📝"}]},
+
+ {n:3,en:"The Big Question",it:"La grande domanda",scene:"🙋 ❓ ⏰",
+  story:[{en:"Nick asks a question.",it:"Nick fa una domanda."},
+         {en:"\u201CWhere do words come from?\u201D",it:"\u201CDa dove vengono le parole?\u201D"},
+         {en:"Now Nick must make a report!",it:"Ora Nick deve fare una relazione!"}],
+  vocab:[{w:"question",it:"domanda",pic:"❓",ans:"QUESTION"},{w:"ask",it:"chiedere",pic:"🙋",ans:"ASK"},
+         {w:"time",it:"tempo",pic:"⏰",ans:"TIME"},{w:"report",it:"relazione",pic:"📋",ans:"REPORT"},
+         {w:"make",it:"fare",pic:"✍️",ans:"MAKE"},{w:"end",it:"fine",pic:"🏁",ans:"END"}],
+  phrases:[{en:"I have a question.",it:"Ho una domanda.",pic:"❓"},{en:"Where do words come from?",it:"Da dove vengono le parole?",pic:"💬"},{en:"Make a report.",it:"Fai una relazione.",pic:"📋"}]},
+
+ {n:4,en:"Where Words Come From",it:"Da dove vengono le parole",scene:"📖 💭 👥",
+  story:[{en:"Nick reads and learns.",it:"Nick legge e impara."},
+         {en:"People make words!",it:"Le persone creano le parole!"},
+         {en:"A word means what we all agree.",it:"Una parola significa ciò su cui siamo d'accordo."}],
+  vocab:[{w:"read",it:"leggere",pic:"📖",ans:"READ"},{w:"learn",it:"imparare",pic:"🎓",ans:"LEARN"},
+         {w:"people",it:"persone",pic:"👥",ans:"PEOPLE"},{w:"use",it:"usare",pic:"✋",ans:"USE"},
+         {w:"mean",it:"significare",pic:"💭",ans:"MEAN"},{w:"think",it:"pensare",pic:"🤔",ans:"THINK"}],
+  phrases:[{en:"People make words.",it:"Le persone creano le parole.",pic:"👥"},{en:"What does it mean?",it:"Cosa significa?",pic:"💭"},{en:"I think...",it:"Penso che...",pic:"🤔"}]},
+
+ {n:5,en:"A New Word!",it:"Una parola nuova!",scene:"🖊️ 💡 😄",
+  story:[{en:"A girl drops a pen.",it:"Una ragazza fa cadere una penna."},
+         {en:"Nick picks it up. Big idea!",it:"Nick la raccoglie. Grande idea!"},
+         {en:"\u201CThis is a frindle!\u201D",it:"\u201CQuesto è un frindle!\u201D"}],
+  vocab:[{w:"girl",it:"ragazza",pic:"👧",ans:"GIRL"},{w:"pen",it:"penna",pic:"🖊️",ans:"PEN"},
+         {w:"new",it:"nuovo",pic:"✨",ans:"NEW"},{w:"happy",it:"felice",pic:"😄",ans:"HAPPY"},
+         {w:"name",it:"nome",pic:"🏷️",ans:"NAME"},{w:"hand",it:"mano",pic:"🤲",ans:"HAND"}],
+  phrases:[{en:"This is a pen.",it:"Questa è una penna.",pic:"🖊️"},{en:"No! This is a frindle!",it:"No! Questo è un frindle!",pic:"😄"},{en:"I am happy.",it:"Sono felice.",pic:"😄"}]},
+
+ {n:6,en:"Five Friends",it:"Cinque amici",scene:"🤝 🖊️ 🏪",
+  story:[{en:"Five friends say frindle too!",it:"Cinque amici dicono frindle!"},
+         {en:"They make a promise.",it:"Fanno una promessa."},
+         {en:"\u201CI want a frindle, please.\u201D",it:"\u201CVoglio un frindle, per favore.\u201D"}],
+  vocab:[{w:"friend",it:"amico",pic:"🤝",ans:"FRIEND"},{w:"five",it:"cinque",pic:"5️⃣",ans:"FIVE"},
+         {w:"promise",it:"promessa",pic:"🤞",ans:"PROMISE"},{w:"shop",it:"negozio",pic:"🏪",ans:"SHOP"},
+         {w:"want",it:"volere",pic:"🙏",ans:"WANT"},{w:"buy",it:"comprare",pic:"🛒",ans:"BUY"}],
+  phrases:[{en:"We are friends.",it:"Siamo amici.",pic:"🤝"},{en:"I want a frindle, please.",it:"Voglio un frindle, per favore.",pic:"🖊️"},{en:"I promise.",it:"Prometto.",pic:"🤞"}]},
+
+ {n:7,en:"The Word Spreads",it:"La parola si diffonde",scene:"🗣️ 🏫 🚫",
+  story:[{en:"More children say frindle.",it:"Più bambini dicono frindle."},
+         {en:"\u201CIt is not a real word!\u201D",it:"\u201CNon è una parola vera!\u201D"},
+         {en:"But the children do not stop.",it:"Ma i bambini non si fermano."}],
+  vocab:[{w:"more",it:"di più",pic:"➕",ans:"MORE"},{w:"child",it:"bambino",pic:"🧒",ans:"CHILD"},
+         {w:"real",it:"vero",pic:"✅",ans:"REAL"},{w:"stay",it:"restare",pic:"🪑",ans:"STAY"},
+         {w:"stop",it:"fermarsi",pic:"🛑",ans:"STOP"},{w:"talk",it:"parlare",pic:"🗣️",ans:"TALK"}],
+  phrases:[{en:"It is not a real word.",it:"Non è una parola vera.",pic:"🚫"},{en:"Stay after school.",it:"Resta dopo la scuola.",pic:"🪑"},{en:"Don't stop!",it:"Non fermarti!",pic:"🛑"}]},
+
+ {n:8,en:"The War of Words",it:"La guerra delle parole",scene:"⚔️ ✉️ 🤫",
+  story:[{en:"The room is full of children.",it:"La stanza è piena di bambini."},
+         {en:"Mrs. Granger writes a secret letter.",it:"La signora Granger scrive una lettera segreta."},
+         {en:"\u201COpen it in the future.\u201D",it:"\u201CAprila nel futuro.\u201D"}],
+  vocab:[{w:"war",it:"guerra",pic:"⚔️",ans:"WAR"},{w:"full",it:"pieno",pic:"📦",ans:"FULL"},
+         {w:"letter",it:"lettera",pic:"✉️",ans:"LETTER"},{w:"secret",it:"segreto",pic:"🤫",ans:"SECRET"},
+         {w:"write",it:"scrivere",pic:"✍️",ans:"WRITE"},{w:"room",it:"stanza",pic:"🚪",ans:"ROOM"}],
+  phrases:[{en:"It is a secret.",it:"È un segreto.",pic:"🤫"},{en:"Open it in the future.",it:"Aprila nel futuro.",pic:"✉️"},{en:"The room is full.",it:"La stanza è piena.",pic:"📦"}]},
+
+ {n:9,en:"In the Newspaper",it:"Sul giornale",scene:"📰 🏙️ 🌟",
+  story:[{en:"A reporter writes a story.",it:"Una giornalista scrive una storia."},
+         {en:"The town reads about Nick.",it:"La città legge di Nick."},
+         {en:"Nick is famous!",it:"Nick è famoso!"}],
+  vocab:[{w:"news",it:"giornale",pic:"📰",ans:"NEWS"},{w:"story",it:"storia",pic:"📖",ans:"STORY"},
+         {w:"town",it:"città",pic:"🏙️",ans:"TOWN"},{w:"famous",it:"famoso",pic:"🌟",ans:"FAMOUS"},
+         {w:"home",it:"casa",pic:"🏠",ans:"HOME"},{w:"mum",it:"mamma",pic:"👩",ans:"MUM"}],
+  phrases:[{en:"It is in the newspaper.",it:"È sul giornale.",pic:"📰"},{en:"Nick is famous!",it:"Nick è famoso!",pic:"🌟"},{en:"Read the story.",it:"Leggi la storia.",pic:"📖"}]},
+
+ {n:10,en:"Frindle Is Famous",it:"Frindle è famoso",scene:"📺 🌍 💰",
+  story:[{en:"Frindle is on TV!",it:"Frindle è in TV!"},
+         {en:"The whole country says it.",it:"Tutto il paese lo dice."},
+         {en:"One little word is now big.",it:"Una piccola parola ora è grande."}],
+  vocab:[{w:"tv",it:"televisione",pic:"📺",ans:"TV"},{w:"country",it:"paese",pic:"🗺️",ans:"COUNTRY"},
+         {w:"money",it:"soldi",pic:"💰",ans:"MONEY"},{w:"sell",it:"vendere",pic:"🛒",ans:"SELL"},
+         {w:"big",it:"grande",pic:"🐘",ans:"BIG"},{w:"world",it:"mondo",pic:"🌍",ans:"WORLD"}],
+  phrases:[{en:"Frindle is on TV.",it:"Frindle è in TV.",pic:"📺"},{en:"It is everywhere.",it:"È dappertutto.",pic:"🌍"},{en:"It is very big now.",it:"Adesso è molto grande.",pic:"🐘"}]},
+
+ {n:11,en:"Too Big",it:"Troppo grande",scene:"😯 📈 🤏",
+  story:[{en:"The word is bigger than Nick.",it:"La parola è più grande di Nick."},
+         {en:"Nick feels a little strange.",it:"Nick si sente un po' strano."},
+         {en:"It belongs to everyone now.",it:"Ora appartiene a tutti."}],
+  vocab:[{w:"big",it:"grande",pic:"📈",ans:"BIG"},{w:"strange",it:"strano",pic:"😯",ans:"STRANGE"},
+         {w:"feel",it:"sentire",pic:"😟",ans:"FEEL"},{w:"quiet",it:"tranquillo",pic:"🤫",ans:"QUIET"},
+         {w:"all",it:"tutti",pic:"👨‍👩‍👧‍👦",ans:"ALL"},{w:"word",it:"parola",pic:"💬",ans:"WORD"}],
+  phrases:[{en:"It is too big.",it:"È troppo grande.",pic:"📈"},{en:"I feel strange.",it:"Mi sento strano.",pic:"😯"},{en:"It belongs to everyone.",it:"Appartiene a tutti.",pic:"👨‍👩‍👧‍👦"}]},
+
+ {n:12,en:"Time Goes By",it:"Il tempo passa",scene:"📅 ⏳ 🌱",
+  story:[{en:"Years go by.",it:"Gli anni passano."},
+         {en:"Frindle is a normal word now.",it:"Frindle ora è una parola normale."},
+         {en:"Everyone uses it!",it:"Tutti la usano!"}],
+  vocab:[{w:"time",it:"tempo",pic:"⏳",ans:"TIME"},{w:"year",it:"anno",pic:"📅",ans:"YEAR"},
+         {w:"normal",it:"normale",pic:"😐",ans:"NORMAL"},{w:"now",it:"adesso",pic:"⏰",ans:"NOW"},
+         {w:"life",it:"vita",pic:"🌱",ans:"LIFE"},{w:"grow",it:"crescere",pic:"📈",ans:"GROW"}],
+  phrases:[{en:"Time goes by.",it:"Il tempo passa.",pic:"⏳"},{en:"It is normal now.",it:"Adesso è normale.",pic:"😐"},{en:"Nick grows up.",it:"Nick cresce.",pic:"🌱"}]},
+
+ {n:13,en:"Nick Grows Up",it:"Nick cresce",scene:"🎓 😊 🔑",
+  story:[{en:"Nick goes to university.",it:"Nick va all'università."},
+         {en:"Nobody knows the secret.",it:"Nessuno conosce il segreto."},
+         {en:"Nick remembers Mrs. Granger.",it:"Nick ricorda la signora Granger."}],
+  vocab:[{w:"big",it:"grande",pic:"🧑",ans:"BIG"},{w:"know",it:"sapere",pic:"💡",ans:"KNOW"},
+         {w:"smile",it:"sorriso",pic:"😊",ans:"SMILE"},{w:"young",it:"giovane",pic:"👶",ans:"YOUNG"},
+         {w:"old",it:"vecchio",pic:"👴",ans:"OLD"},{w:"key",it:"chiave",pic:"🔑",ans:"KEY"}],
+  phrases:[{en:"Nick is big now.",it:"Nick adesso è grande.",pic:"🧑"},{en:"I remember my teacher.",it:"Ricordo la mia insegnante.",pic:"😊"},{en:"Do you know the secret?",it:"Conosci il segreto?",pic:"🔑"}]},
+
+ {n:14,en:"The Dictionary & the Letter",it:"Il dizionario e la lettera",scene:"📖 ✉️ 😲",
+  story:[{en:"Frindle is in the dictionary!",it:"Frindle è nel dizionario!"},
+         {en:"Nick opens the secret letter.",it:"Nick apre la lettera segreta."},
+         {en:"Surprise! She always liked it!",it:"Sorpresa! Le è sempre piaciuto!"}],
+  vocab:[{w:"news",it:"notizia",pic:"📢",ans:"NEWS"},{w:"gift",it:"regalo",pic:"🎁",ans:"GIFT"},
+         {w:"open",it:"aprire",pic:"📂",ans:"OPEN"},{w:"surprise",it:"sorpresa",pic:"😲",ans:"SURPRISE"},
+         {w:"always",it:"sempre",pic:"♾️",ans:"ALWAYS"},{w:"book",it:"libro",pic:"📖",ans:"BOOK"}],
+  phrases:[{en:"It is in the dictionary!",it:"È nel dizionario!",pic:"📖"},{en:"Open the letter.",it:"Apri la lettera.",pic:"✉️"},{en:"What a surprise!",it:"Che sorpresa!",pic:"😲"}]},
+
+ {n:15,en:"Thank You, Mrs. Granger",it:"Grazie, signora Granger",scene:"🙏 🖊️ ❤️",
+  story:[{en:"Nick says thank you.",it:"Nick dice grazie."},
+         {en:"He sends a gold pen.",it:"Manda una penna d'oro."},
+         {en:"They are friends forever!",it:"Sono amici per sempre!"}],
+  vocab:[{w:"thanks",it:"grazie",pic:"🙏",ans:"THANKS"},{w:"kind",it:"gentile",pic:"❤️",ans:"KIND"},
+         {w:"gold",it:"oro",pic:"🥇",ans:"GOLD"},{w:"special",it:"speciale",pic:"⭐",ans:"SPECIAL"},
+         {w:"friend",it:"amico",pic:"👫",ans:"FRIEND"},{w:"pen",it:"penna",pic:"🖊️",ans:"PEN"}],
+  phrases:[{en:"Thank you!",it:"Grazie!",pic:"🙏"},{en:"You are my friend.",it:"Sei mia amica.",pic:"👫"},{en:"The end!",it:"Fine!",pic:"❤️"}]},
+];
+
+/* ============================ STATE ============================ */
+let progress = {}; // {chapterN: {match:true,memory:true,cross:true}}
+function loadP(){ try{const s=localStorage.getItem('frindle_v1'); if(s) progress=JSON.parse(s);}catch(e){progress={};} }
+function saveP(){ try{localStorage.setItem('frindle_v1',JSON.stringify(progress));}catch(e){} }
+function chStars(n){ const p=progress[n]||{}; return (p.match?1:0)+(p.memory?1:0)+(p.cross?1:0); }
+function totalStars(){ let t=0; for(let i=1;i<=15;i++) t+=chStars(i); return t; }
+function chaptersDone(){ let t=0; for(let i=1;i<=15;i++) if(chStars(i)===3) t++; return t; }
+let cur=null; // current chapter index (0-based)
+
+/* ============================ AUDIO ============================ */
+let AC; function ac(){ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended')AC.resume(); return AC; }
+function tone(f,s,d,t='sine',v=.2){const c=ac(),o=c.createOscillator(),g=c.createGain();o.type=t;o.frequency.value=f;o.connect(g);g.connect(c.destination);const tt=c.currentTime+s;g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(v,tt+.02);g.gain.exponentialRampToValueAtTime(.001,tt+d);o.start(tt);o.stop(tt+d+.02);}
+function tap(){tone(760,0,.08,'sine',.12);}
+function good(){tone(660,0,.12,'sine',.2);tone(990,.09,.18,'sine',.2);}
+function bad(){tone(150,0,.16,'square',.1);}
+function win(){[523,659,784,1046,1318].forEach((f,i)=>tone(f,i*.1,.3,'triangle',.2));}
+function chirp(){const c=ac();for(let k=0;k<3;k++){const o=c.createOscillator(),g=c.createGain();o.type='sine';o.connect(g);g.connect(c.destination);const t=c.currentTime+k*.16;o.frequency.setValueAtTime(2100,t);o.frequency.exponentialRampToValueAtTime(3600,t+.06);o.frequency.exponentialRampToValueAtTime(1900,t+.12);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.18,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+.14);o.start(t);o.stop(t+.16);}}
+let voices=[];
+function pickVoice(){ const en=voices.filter(v=>/^en/i.test(v.lang)); return en.find(v=>/US|United States/i.test(v.lang+v.name))||en[0]||null; }
+function loadVoices(){ if('speechSynthesis'in window){ voices=speechSynthesis.getVoices(); } }
+if('speechSynthesis'in window){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
+function speak(text){
+  if('speechSynthesis'in window){ try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text);
+    u.lang='en-US'; u.rate=.78; u.pitch=1.05; const v=pickVoice(); if(v)u.voice=v; speechSynthesis.speak(u);}catch(e){} }
+  else tap();
+}
+
+/* ============================ HELPERS ============================ */
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800);}
+function floatPts(n,x,y){const f=document.createElement('div');f.className='floatpts';f.textContent='+'+n;f.style.left=(x||window.innerWidth/2)+'px';f.style.top=(y||120)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),1000);}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ============================ HOME ============================ */
+function renderHome(){
+  document.getElementById('totalStars').textContent=totalStars();
+  document.getElementById('chDone').textContent=chaptersDone();
+  const g=document.getElementById('chGrid'); g.innerHTML='';
+  CH.forEach((c,i)=>{
+    const s=chStars(c.n);
+    const d=document.createElement('div');
+    d.className='ch-card'+(s===3?' done':'');
+    d.innerHTML=`<div class="num">${c.n}</div><div class="emj">${c.scene.split(' ')[0]}</div>
+      <div class="t-en">${c.en}</div><div class="t-it">${c.it}</div>
+      <div class="stars">${'⭐'.repeat(s)}${'·'.repeat(3-s)}</div>`;
+    d.onclick=()=>{tap();openChapter(i);};
+    g.appendChild(d);
+  });
+}
+function goHome(){ try{speechSynthesis.cancel();}catch(e){} document.getElementById('chapter').classList.remove('show'); document.getElementById('home').classList.add('show'); renderHome(); window.scrollTo(0,0); }
+
+/* ============================ CHAPTER ============================ */
+function openChapter(i){
+  cur=i; const c=CH[i];
+  document.getElementById('home').classList.remove('show');
+  document.getElementById('chapter').classList.add('show');
+  document.getElementById('chTitle').innerHTML=`Ch ${c.n}: ${c.en}<small>${c.it}</small>`;
+  // tab done marks
+  document.querySelectorAll('.tab').forEach(t=>{
+    const p=t.dataset.pane, pr=progress[c.n]||{};
+    const done=(p==='match'&&pr.match)||(p==='memory'&&pr.memory)||(p==='cross'&&pr.cross);
+    t.classList.toggle('tdone',!!done);
+  });
+  buildStory(c); buildMatch(c); buildMemory(c); buildCross(c);
+  showPane('story'); window.scrollTo(0,0);
+}
+function showPane(name){
+  tap();
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('show'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.pane===name));
+  const map={story:'pane-story',match:'pane-match',memory:'pane-memory',cross:'pane-cross'};
+  document.getElementById(map[name]).classList.add('show');
+}
+
+/* ---------- STORY ---------- */
+function buildStory(c){
+  document.getElementById('scene').textContent=c.scene;
+  const box=document.getElementById('storyLines'); box.innerHTML='';
+  c.story.forEach(l=>{
+    const d=document.createElement('div');d.className='story-line';
+    d.innerHTML=`<div class="en">${l.en} <span class="spk">🔊</span></div><div class="it">${l.it}</div>`;
+    d.onclick=()=>{tap();speak(l.en);};
+    box.appendChild(d);
+  });
+  const ph=document.getElementById('phrases'); ph.innerHTML='';
+  c.phrases.forEach(p=>{
+    const d=document.createElement('div');d.className='phrase';
+    d.innerHTML=`<div class="pic">${p.pic}</div><div class="txt"><div class="en">${p.en}</div><div class="it">${p.it}</div></div><div class="ear">🔊</div>`;
+    d.onclick=()=>{tap();speak(p.en);};
+    ph.appendChild(d);
+  });
+}
+function playStory(){
+  const c=CH[cur]; if(!('speechSynthesis'in window)){tap();return;}
+  speechSynthesis.cancel();
+  c.story.forEach(l=>{const u=new SpeechSynthesisUtterance(l.en);u.lang='en-US';u.rate=.78;u.pitch=1.05;const v=pickVoice();if(v)u.voice=v;speechSynthesis.speak(u);});
+}
+
+/* ---------- MATCH ---------- */
+let mSel=null, mLeft=0;
+function buildMatch(c){
+  mSel=null; mLeft=c.vocab.length;
+  document.getElementById('matchDone').innerHTML='';
+  const W=document.getElementById('matchWords'), P=document.getElementById('matchPics');
+  W.innerHTML='';P.innerHTML='';
+  shuffle(c.vocab).forEach(v=>{
+    const t=document.createElement('div');t.className='tile';t.textContent=v.w;t.dataset.id=v.ans+v.pic;
+    t.onclick=()=>{ if(t.classList.contains('lock'))return; tap();
+      document.querySelectorAll('#matchWords .tile').forEach(x=>x.classList.remove('sel'));
+      t.classList.add('sel'); mSel={v,el:t}; };
+    W.appendChild(t);
+  });
+  shuffle(c.vocab).forEach(v=>{
+    const t=document.createElement('div');t.className='tile pic';t.textContent=v.pic;t.dataset.id=v.ans+v.pic;
+    t.onclick=(e)=>{ if(t.classList.contains('lock'))return;
+      if(!mSel){toast('Tap a word first! 👈');return;}
+      if(mSel.el.dataset.id===t.dataset.id){
+        t.classList.add('lock');mSel.el.classList.add('lock','locktxt');mSel.el.classList.remove('sel');
+        good();speak(mSel.v.w);floatPts(10,e.clientX,e.clientY);
+        mSel=null;mLeft--;
+        if(mLeft===0) finishGame('match','🧩 All matched! · Tutto abbinato!','matchDone');
+      } else { t.classList.add('miss');bad();setTimeout(()=>t.classList.remove('miss'),400); }
+    };
+    P.appendChild(t);
+  });
+}
+
+/* ---------- MEMORY ---------- */
+let memFirst=null, memBusy=false, memLeft=0;
+function buildMemory(c){
+  memFirst=null;memBusy=false;memLeft=c.vocab.length;
+  document.getElementById('memDone').innerHTML='';
+  const G=document.getElementById('memGrid');G.innerHTML='';
+  let cards=[];
+  c.vocab.forEach(v=>{cards.push({id:v.ans,kind:'w',face:v.w,word:v.w});cards.push({id:v.ans,kind:'p',face:v.pic,word:v.w});});
+  cards=shuffle(cards);
+  cards.forEach(cd=>{
+    const el=document.createElement('div');el.className='mcard';
+    el.innerHTML=`<span class="back">❓</span><span class="face${cd.kind==='p'?' pic':''}">${cd.face}</span>`;
+    el.onclick=()=>{
+      if(memBusy||el.classList.contains('flip')||el.classList.contains('lock'))return;
+      tap();el.classList.add('flip');
+      if(cd.kind==='p'||cd.kind==='w'){} // could speak word on flip of word card
+      if(!memFirst){ memFirst={el,cd}; if(cd.kind==='w')speak(cd.word); }
+      else{
+        memBusy=true;
+        if(memFirst.cd.id===cd.id && memFirst.el!==el){
+          good();speak(cd.word);
+          setTimeout(()=>{el.classList.add('lock');memFirst.el.classList.add('lock');memFirst=null;memBusy=false;
+            memLeft--; if(memLeft===0) finishGame('memory','🃏 You found all the pairs! · Tutte le coppie!','memDone');
+          },550);
+        } else {
+          bad();
+          setTimeout(()=>{el.classList.remove('flip');memFirst.el.classList.remove('flip');memFirst=null;memBusy=false;},800);
+        }
+      }
+    };
+    G.appendChild(el);
+  });
+}
+
+/* ---------- CROSSWORD ---------- */
+let xwSolution={}, xwInputs={};
+function buildCross(c){
+  document.getElementById('crossDone').innerHTML='';
+  let words=c.vocab.map(v=>({ans:v.ans,it:v.it,pic:v.pic}))
+    .filter(o=>/^[A-Z]+$/.test(o.ans)&&o.ans.length>=3&&o.ans.length<=8);
+  // unique by ans
+  const seen={};words=words.filter(o=>seen[o.ans]?false:(seen[o.ans]=1));
+  words.sort((a,b)=>b.ans.length-a.ans.length);
+  const layout=placeWords(words);
+  renderCross(layout);
+}
+function placeWords(words){
+  if(!words.length) return {placed:[],grid:{}};
+  let grid={}, placed=[];
+  const set=(r,c,ch)=>grid[r+','+c]=ch;
+  const get=(r,c)=>grid[r+','+c];
+  const first=words[0];
+  for(let i=0;i<first.ans.length;i++) set(0,i,first.ans[i]);
+  placed.push({...first,r:0,c:0,dir:'H'});
+  function fits(ans,r0,c0,dir){
+    let crossing=false;
+    const dr=dir==='V'?1:0, dc=dir==='H'?1:0;
+    // cell before start & after end must be empty
+    if(get(r0-dr,c0-dc)!=null) return false;
+    if(get(r0+dr*ans.length,c0+dc*ans.length)!=null) return false;
+    for(let i=0;i<ans.length;i++){
+      const r=r0+dr*i, c=c0+dc*i, ex=get(r,c), ch=ans[i];
+      if(ex!=null){ if(ex!==ch) return false; crossing=true; }
+      else{
+        // non-crossing cell: perpendicular neighbours must be empty (avoid touching parallel words)
+        if(dir==='H'){ if(get(r-1,c)!=null||get(r+1,c)!=null) return false; }
+        else{ if(get(r,c-1)!=null||get(r,c+1)!=null) return false; }
+      }
+    }
+    return crossing;
+  }
+  for(let w=1; w<words.length; w++){
+    const word=words[w]; let done=false;
+    for(let li=0; li<word.ans.length && !done; li++){
+      const ch=word.ans[li];
+      for(const key in grid){
+        if(grid[key]!==ch) continue;
+        const [r,c]=key.split(',').map(Number);
+        if(fits(word.ans,r-li,c,'V')){ for(let i=0;i<word.ans.length;i++)set(r-li+i,c,word.ans[i]); placed.push({...word,r:r-li,c,dir:'V'}); done=true;break;}
+        if(fits(word.ans,r,c-li,'H')){ for(let i=0;i<word.ans.length;i++)set(r,c-li+i,word.ans[i]); placed.push({...word,r,c:c-li,dir:'H'}); done=true;break;}
+      }
+    }
+  }
+  return {placed,grid};
+}
+function renderCross(layout){
+  xwSolution={};xwInputs={};
+  const G=document.getElementById('xwGrid'), CL=document.getElementById('xwClues');
+  G.innerHTML='';CL.innerHTML='';
+  const cells=Object.keys(layout.grid);
+  if(!cells.length){ CL.innerHTML='<div class="hint">No crossword for this chapter.</div>'; return; }
+  let minR=1e9,minC=1e9,maxR=-1e9,maxC=-1e9;
+  cells.forEach(k=>{const [r,c]=k.split(',').map(Number);minR=Math.min(minR,r);minC=Math.min(minC,c);maxR=Math.max(maxR,r);maxC=Math.max(maxC,c);});
+  const rows=maxR-minR+1, cols=maxC-minC+1;
+  G.style.gridTemplateColumns=`repeat(${cols},34px)`;
+  // number the starting cells
+  const starts={}; let num=0;
+  const placedSorted=layout.placed.slice().sort((a,b)=> (a.r-b.r)||(a.c-b.c));
+  const numberAt={};
+  placedSorted.forEach(p=>{ const key=p.r+','+p.c; if(numberAt[key]==null){numberAt[key]=++num;} });
+  // build cell map
+  const cellSet={}; cells.forEach(k=>cellSet[k]=layout.grid[k]);
+  for(let r=minR;r<=maxR;r++){
+    for(let c=minC;c<=maxC;c++){
+      const key=r+','+c; const wrap=document.createElement('div');
+      if(cellSet[key]==null){ wrap.className='xc block'; G.appendChild(wrap); continue; }
+      wrap.className='xc';
+      const inp=document.createElement('input'); inp.maxLength=1; inp.dataset.k=key;
+      inp.addEventListener('input',()=>{inp.value=inp.value.toUpperCase().replace(/[^A-Z]/g,'');inp.classList.remove('bad');});
+      wrap.appendChild(inp);
+      if(numberAt[key]){const qn=document.createElement('span');qn.className='qn';qn.textContent=numberAt[key];wrap.appendChild(qn);}
+      G.appendChild(wrap);
+      xwSolution[key]=cellSet[key]; xwInputs[key]=inp;
+    }
+  }
+  // clues
+  const across=[],down=[];
+  placedSorted.forEach(p=>{ const n=numberAt[p.r+','+p.c]; (p.dir==='H'?across:down).push({n,it:p.it,pic:p.pic}); });
+  function clueRow(o){return `<div class="clue"><span class="n">${o.n}</span><span class="pic">${o.pic}</span><span class="it">${o.it}</span></div>`;}
+  let html='';
+  if(across.length){html+='<div style="font-weight:800;margin:4px 0">➡️ Across · Orizzontali</div>'+across.sort((a,b)=>a.n-b.n).map(clueRow).join('');}
+  if(down.length){html+='<div style="font-weight:800;margin:8px 0 4px">⬇️ Down · Verticali</div>'+down.sort((a,b)=>a.n-b.n).map(clueRow).join('');}
+  CL.innerHTML=html;
+}
+function checkCross(){
+  let allFilled=true, allRight=true;
+  for(const k in xwSolution){
+    const inp=xwInputs[k], val=(inp.value||'').toUpperCase();
+    if(!val){allFilled=false;allRight=false;continue;}
+    if(val===xwSolution[k]){inp.classList.add('ok');inp.classList.remove('bad');}
+    else{inp.classList.add('bad');inp.classList.remove('ok');allRight=false;}
+  }
+  if(allRight){ win(); finishGame('cross','✏️ Crossword complete! · Cruciverba completo!','crossDone'); }
+  else if(!allFilled){ toast('Fill all the boxes! · Riempi tutte le caselle!'); bad(); }
+  else { toast('Almost! Check the red boxes · Quasi!'); bad(); }
+}
+
+/* ---------- FINISH A GAME ---------- */
+function finishGame(key,msg,boxId){
+  const c=CH[cur];
+  if(!progress[c.n]) progress[c.n]={};
+  const wasNew=!progress[c.n][key];
+  progress[c.n][key]=true; saveP();
+  if(wasNew) floatPts(20);
+  document.getElementById(boxId).innerHTML=
+    `<div class="done-banner"><div class="e">⭐</div><div class="t">${msg}</div>
+     <div class="i">${chStars(c.n)}/3 stars in this chapter</div></div>`;
+  // update tab + maybe celebrate chapter
+  document.querySelectorAll('.tab').forEach(t=>{
+    if((t.dataset.pane==='match'&&progress[c.n].match)||(t.dataset.pane==='memory'&&progress[c.n].memory)||(t.dataset.pane==='cross'&&progress[c.n].cross)) t.classList.add('tdone');
+  });
+  if(chStars(c.n)===3){ setTimeout(()=>{win();toast('🏆 Chapter complete! Capitolo completato!');},400); }
+  setTimeout(()=>{ if(boxId==='matchDone')buildMatch(c); if(boxId==='memDone'){} },50);
+}
+
+/* ============================ INIT ============================ */
+document.body.addEventListener('pointerdown',()=>{try{ac();}catch(e){} loadVoices();},{once:true});
+loadP(); renderHome();
+</script>
+</body>
+</html>
